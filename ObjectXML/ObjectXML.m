@@ -481,11 +481,10 @@
 @synthesize errorDelegate;
 
 - (OXNode *)document {
-#if IC_DEBUG
     if (rootElement.children.count == 0) {
         dlog(1, @"ERROR: root document is blank at %p / %@", rootElement, rootElement);
+        return nil;
     }
-#endif
     return [rootElement.children objectAtIndex:0];
 }
 
