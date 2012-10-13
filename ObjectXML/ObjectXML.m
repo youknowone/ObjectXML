@@ -173,7 +173,7 @@
             if (key == nil) {
                 key = [NSNull null];
             }
-            if ([names indexOfObject:elem.name] != NSNotFound) {
+            if ([names indexOfObject:key] != NSNotFound) {
                 [tempResult addObject:elem];
             }
         }
