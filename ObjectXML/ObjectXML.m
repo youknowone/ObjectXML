@@ -11,26 +11,30 @@
 #import "ObjectXML.h"
 #import "debug.h"
 
-//@implementation OXElement
-//@dynamic space, name, elements, attributes, parent, root, text, strippedText;
-//
-//+ (id)alloc {
-//    assert(NO);
-//}
-//
-//- (id)init {
-//    assert(NO);
-//}
-//
-//- (id)copyWithZone:(NSZone *)zone {
-//    assert(NO);
-//}
-//
-//- (NSString *)descriptionWithIndent:(NSString *)indent {
-//    return nil;
-//}
-//
-//@end
+@implementation OXElement
+@dynamic space, name, elements, children, attributes, parent, root, text, innerText, strippedText, strippedInnerText;
+
++ (id)alloc {
+    assert(NO);
+}
+
+- (id)init {
+    assert(NO);
+}
+
+- (id)copyWithZone:(NSZone *)zone {
+    assert(NO);
+}
+
+- (NSString *)descriptionWithIndent:(NSString *)indent {
+    return nil;
+}
+
+- (void)setAttributes:(OXAttributeDictionary *)attributes {
+    assert(NO);
+}
+
+@end
 
 
 @implementation OXAttributeDictionary
@@ -152,7 +156,43 @@
     return [self childrenByNames:name, nil];
 }
 
+- (NSArray *)byName:(NSString *)name {
+    return [self childrenByNames:name, nil];
+}
+
 - (NSArray *)childrenByNames:(NSString *)name, ... {
+    va_list args;
+	va_start(args, name);
+
+    NSMutableArray *names = [NSMutableArray array];
+	for (NSString *arg = name; arg != nil; arg = va_arg(args, NSString*))
+	{
+		[names addObject:arg];
+	}
+	va_end(args);
+
+    NSString *uniqueKey = [names componentsJoinedByString:@"&"];
+
+    NSArray *result = [self->_childrenDictionary objectForKey:uniqueKey];
+    if (result == nil) {
+        NSMutableArray *tempResult = [NSMutableArray array];
+        for (NSObject<OXElement> *elem in self) {
+            id key = elem.name;
+            if (key == nil) {
+                key = [NSNull null];
+            }
+            if ([names indexOfObject:key] != NSNotFound) {
+                [tempResult addObject:elem];
+            }
+        }
+        result = [NSArray arrayWithArray:tempResult];
+        [self->_childrenDictionary setObject:result forKey:uniqueKey];
+    }
+    return result;
+}
+
+- (NSArray *)byNames:(NSString *)name, ... {
+    // FIXME: hard copy...
     va_list args;
 	va_start(args, name);
 

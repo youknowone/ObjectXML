@@ -19,13 +19,41 @@
     NSMutableDictionary *_childrenDictionary;
 }
 
+/*!
+ *  @brief Name set of children
+ */
 - (NSArray *)childrenNames;
+/*!
+ *  @brief Returns childrens by given names
+ *  @details Results are cached
+ */
 - (NSArray *)childrenByName:(NSString *)name;
-- (NSArray *)childrenByNames:(NSString *)name, ...;
+/*!
+ *  @brief Returns childrens by given names
+ *  @details Results are cached
+ */
+- (NSArray *)childrenByNames:(NSString *)name, ... NS_REQUIRES_NIL_TERMINATION;
+/*!
+ *  @brief Shortcut for childrenByName:
+ */
+- (NSArray *)byName:(NSString *)name;
+/*!
+ *  @brief Shortcut for childrenByNames:
+ */
+- (NSArray *)byNames:(NSString *)name, ... NS_REQUIRES_NIL_TERMINATION;
+/*!
+ *  @brief First object of childrenByName:
+ */
 - (id)firstChildByName:(NSString *)name;
 //- (id)firstChildByNames:(NSString *)name, ...;
 
+/*!
+ *  @brief Returns text childrens
+ */
 - (NSArray *)textChildren;
+/*!
+ *  @brief First object of textChildren
+ */
 - (id)firstTextChild;
 
 @end
@@ -52,10 +80,12 @@
 @end
 
 
-//// abstract
-//@interface OXElement: NSObject<OXElement>
-//
-//@end
+/*!
+ *  @brief Fake interface object. Use for iteration only.
+ */
+@interface OXElement: NSObject<OXElement>
+
+@end
 
 
 @interface OXNode: NSObject<OXElement> {
