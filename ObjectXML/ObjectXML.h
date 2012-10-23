@@ -6,12 +6,170 @@
 //  Copyright 2010 youknowone.org All rights reserved.
 //
 
+@class OXAttributeDictionary, OXElementArray;
+@class OXNode;
+
+/*!
+ *  @brief Common interface of XML element;
+ *
+ */
+@protocol OXElement<NSObject, NSCopying>
+
+//! @brief Namespace. Not impelented yet.
+@property(readonly) NSString *space;
+//! @brief Node name.
+@property(readonly) NSString *name;
+//! @brief Node chiledren.
+@property(readonly) OXElementArray *children;
+//! @brief Node attributes.
+@property(readonly) OXAttributeDictionary *attributes;
+//! @brief Node parents.
+@property(assign) NSObject<OXElement> *parent;
+//! @brief Node root.
+@property(readonly) NSObject<OXElement> *root;
+//! @brief Text value. (If element is text)
+@property(readonly) NSString *text;
+/*!
+ *  @brief text value trimming whitespaces from head and tail.
+ *  @see text
+ */
+@property(readonly) NSString *strippedText;
+//! @brief Text content of node as like Javascript innerHTML.
+@property(readonly) NSString *innerText;
+/*!
+ *  @brief innerText value trimming whitespaces from head and tail.
+ *  @see innerText
+ */
+@property(readonly) NSString *strippedInnerText;
+
+//! @brief description text with indent depth.
+- (NSString *)descriptionWithIndent:(NSString *)indent;
+
+//! @deprecated Use children
+@property(readonly) OXElementArray *elements __deprecated;
+//! @deprecated Setter is not available
+- (void)setAttributes:(OXAttributeDictionary *)attributes __deprecated;
+
+@end
+
+
+/*!
+ *  @brief Fake interface object. Use for iteration only.
+ */
+@interface OXElement: NSObject<OXElement>
+
+@end
+
+
+/*!
+ *  @brief Node element
+ *  @details This is common, basic XML element type. Node has name, attribute, children and innerText
+ */
+@interface OXNode: NSObject<OXElement> {
+    NSObject<OXElement> *_parent;
+    NSString *_name;
+    OXElementArray *_children;
+    OXAttributeDictionary * _attributes;
+
+    NSObject<OXElement> *_root;
+}
+
+/*!
+ *  @brief Initialize a node element.
+ *  @param name
+ *      node name. This should not be nil.
+ *  @param attributes
+ *      node attributes. nil for no attribute.
+ *  @param children
+ *      node children. nil for no children.
+ *  @return An initialized node element from given parameters
+ */
+- (id)initWithName:(NSString *)name attributes:(NSDictionary *)attributes children:(NSArray *)children;
+/*!
+ *  @brief Creates and returns a node element.
+ *  @see initWithName:attributes:children:
+ */
++ (id)nodeWithName:(NSString*)name attributes:(NSDictionary *)attributes children:(NSArray *)children;
+
+@end
+
+/*!
+ *  @brief OXNode creations from parser shortcuts
+ */
+@interface OXNode (creation)
+
+//! @brief Parse a node from data (Containing string)
++ (id)nodeWithData:(NSData *)data;
+/*!
+ *  @brief Parse a node from contents of URL.
+ *  @details About local files, use NSURL -filrURLWithPath:. This can be shorten with FoundationExtension from https://github.com/youknowone/FoundationExtension
+ */
++ (id)nodeWithContentOfURL:(NSURL *)URL;
+//! @brief Parse a node from data string
++ (id)nodeWithString:(NSString *)dataString;
+
+@end
+
+/*!
+ *  @brief Text element
+ *  @details This is text element between XML element type. Text has text.
+ */
+@interface OXText: NSObject<OXElement> {
+@protected
+    NSObject<OXElement> *_parent;
+    NSString *_value;
+    NSString *_strippedValue;
+}
+
+/*!
+ *  @brief Initialize a text element.
+ *  @param string
+ *      text element data string.
+ *  @param parent
+ *      Parent of element. Text element is assumed that has a parent always.
+ *  @return An initialized text element from given parameters
+ */
+- (id)initWithString:(NSString *)string parent:(NSObject<OXElement> *)parent;
+/*!
+ *  @brief Creates and returns a text element.
+ *  @see initWithString:parent:
+ */
++ (id)textWithString:(NSString *)string parent:(NSObject<OXElement> *)parent;
+
+@end
+
+
+/*!
+ *  @brief Text element builder for parser
+ *  @details This class is used for parser internal implementation
+ */
+@interface OXTextBuilder: OXText {
+    NSMutableArray *_resources;
+}
+
+/*!
+ *  @brief Resources to be combined to text element.
+ */
+@property(nonatomic, readonly) NSMutableArray *resources;
+
+@end
+
+
+/*!
+ *  @brief Attributes with dictionary interface.
+ *  @details No additional functions yet. Component of OXNode.
+ */
 @interface OXAttributeDictionary: NSDictionary {
     NSDictionary *impl;
 }
 
 @end
 
+
+/*!
+ *  @brief Children with array interface.
+ *  @details Component of OXNode.
+ */
 @interface OXElementArray : NSMutableArray  {
     NSMutableArray *impl;
 
@@ -59,81 +217,13 @@
 @end
 
 
-@class OXNode;
-
-@protocol OXElement<NSObject, NSCopying>
-
-@property(readonly) NSString *space, *name;
-@property(readonly) OXElementArray *children;
-@property(readonly) OXElementArray *elements __deprecated;
-@property(readonly) OXAttributeDictionary *attributes;
-- (void)setAttributes:(OXAttributeDictionary *)attributes __deprecated;
-@property(assign) NSObject<OXElement> *parent;
-@property(readonly) NSObject<OXElement> *root;
-@property(readonly) NSString *text;
-@property(readonly) NSString *strippedText;
-@property(readonly) NSString *innerText;
-@property(readonly) NSString *strippedInnerText;
-
-- (NSString *)descriptionWithIndent:(NSString *)indent;
-
-@end
-
+@protocol OXXMLSimpleParserErrorDelegate;
 
 /*!
- *  @brief Fake interface object. Use for iteration only.
+ *  @interface OXXMLSimpleParser
+ *  @brief ObjectXML parser from NSXMLParser
+ *  @details Use OXNode creation methods for easy usage. This is not cleaned up in best form yet.
  */
-@interface OXElement: NSObject<OXElement>
-
-@end
-
-
-@interface OXNode: NSObject<OXElement> {
-    NSObject<OXElement> *_parent;
-    NSString *_name;
-    OXElementArray *_children;
-    OXAttributeDictionary * _attributes;
-
-    NSObject<OXElement> *_root;
-}
-
-- (id)initWithName:(NSString *)name attributes:(NSDictionary *)attributes children:(NSArray *)elements;
-+ (id)nodeWithName:(NSString*)name attributes:(NSDictionary *)attributes children:(NSArray *)elements;
-
-@end
-
-@interface OXNode (creation)
-
-+ (id)nodeWithData:(NSData *)data;
-+ (id)nodeWithContentOfURL:(NSURL *)url;
-+ (id)nodeWithString:(NSString *)dataString;
-
-@end
-
-
-@interface OXText: NSObject<OXElement> {
-@protected
-    NSObject<OXElement> *_parent;
-    NSString *_value;
-    NSString *_strippedValue;
-}
-
-- (id)initWithString:(NSString *)string parent:(NSObject<OXElement> *)parent;
-+ (id)textWithString:(NSString *)string parent:(NSObject<OXElement> *)parent;
-
-@end
-
-
-@interface OXTextBuilder: OXText {
-    NSMutableArray *_resources;
-}
-
-@property(nonatomic, readonly) NSMutableArray *resources;
-
-@end
-
-
-@protocol OXXMLSimpleParserErrorDelegate;
 @interface OXXMLSimpleParser : NSXMLParser
 #if __MAC_OS_X_VERSION_MAX_ALLOWED > __MAC_10_5 || __IPHONE_OS_VERSION_MAX_ALLOWED > __IPHONE_3_2
 <NSXMLParserDelegate>

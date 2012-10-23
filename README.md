@@ -1,5 +1,17 @@
+@mainpage
 # Abstract
 ObjectXML is objective-c object model wrapper for NSXMLParser.
+
+# Download
+
+	git clone git://github.com/youknowone/ObjectXML.git
+	cd ObjectXML
+	git submodule update --init
+
+# Document
+Document on github: [http://youknowone.github.com/ObjectXML] (http://youknowone.github.com/ObjectXML)
+
+Seeing OXNode, OXText and OXAttributeDictionary are enough.
 
 # Quick tutorial
 
