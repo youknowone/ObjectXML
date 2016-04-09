@@ -18,7 +18,7 @@
     assert(NO);
 }
 
-- (id)init {
+- (instancetype)init {
     assert(NO);
 }
 
@@ -39,8 +39,8 @@
 
 @implementation OXAttributeDictionary
 
-- (id)initWithObjects:(const id [])objects forKeys:(const id<NSCopying> [])keys count:(NSUInteger)cnt {
-    self = [self init];
+- (instancetype)initWithObjects:(const id [])objects forKeys:(const id<NSCopying> [])keys count:(NSUInteger)cnt {
+    self = [super initWithObjects:objects forKeys:keys count:0]; // not to use
     if (self != nil) {
         self->impl = [[NSDictionary alloc] initWithObjects:objects forKeys:keys count:cnt];
     }
@@ -54,16 +54,16 @@
 
 - (id)objectForKey:(id)aKey {
     dassert(self->impl);
-    return [self->impl objectForKey:aKey];
+    return self->impl[aKey];
 }
 
 - (NSUInteger)count {
     dassert(self->impl);
-    return [self->impl count];
+    return self->impl.count;
 }
 
 - (NSString *)description {
-    return [self->impl description];
+    return self->impl.description;
 }
 
 
@@ -76,7 +76,7 @@
     self->_childrenDictionary = [[NSMutableDictionary alloc] init];
 }
 
-- (id)init {
+- (instancetype)init {
     self = [super init];
     if (self != nil) {
         self->impl = [[NSMutableArray alloc] init];
@@ -85,7 +85,7 @@
     return self;
 }
 
-- (id)initWithObjects:(const id [])objects count:(NSUInteger)cnt {
+- (instancetype)initWithObjects:(const id [])objects count:(NSUInteger)cnt {
     self = [super init];
     if (self != nil) {
         self->impl = [[NSMutableArray alloc] initWithObjects:objects count:cnt];
@@ -94,7 +94,7 @@
     return self;
 }
 
-- (id)initWithCapacity:(NSUInteger)numItems {
+- (instancetype)initWithCapacity:(NSUInteger)numItems {
     self = [super init];
     if (self != nil) {
         self->impl = [[NSMutableArray alloc] initWithCapacity:numItems];
@@ -103,17 +103,11 @@
     return self;
 }
 
-- (void)dealloc {
-    [self->_childrenDictionary release];
-    [self->_childrenNames release];
-    [self->impl release];
-    [super dealloc];
-}
 
 
 - (NSUInteger)count {
     dassert(self->impl);
-    return [self->impl count];
+    return self->impl.count;
 }
 
 - (void)addObject:(id)anObject {
@@ -123,7 +117,7 @@
 
 - (id)objectAtIndex:(NSUInteger)index {
     dassert(self->impl);
-    return [self->impl objectAtIndex:index];
+    return self->impl[index];
 }
 
 - (void)removeObjectAtIndex:(NSUInteger)index {
@@ -132,7 +126,7 @@
 }
 
 - (NSString *)description {
-    return [self->impl description];
+    return self->impl.description;
 }
 
 - (NSArray *)childrenNames {
@@ -173,7 +167,7 @@
 
     NSString *uniqueKey = [names componentsJoinedByString:@"&"];
 
-    NSArray *result = [self->_childrenDictionary objectForKey:uniqueKey];
+    NSArray *result = self->_childrenDictionary[uniqueKey];
     if (result == nil) {
         NSMutableArray *tempResult = [NSMutableArray array];
         for (NSObject<OXElement> *elem in self) {
@@ -186,7 +180,7 @@
             }
         }
         result = [NSArray arrayWithArray:tempResult];
-        [self->_childrenDictionary setObject:result forKey:uniqueKey];
+        self->_childrenDictionary[uniqueKey] = result;
     }
     return result;
 }
@@ -205,7 +199,7 @@
 
     NSString *uniqueKey = [names componentsJoinedByString:@"&"];
 
-    NSArray *result = [self->_childrenDictionary objectForKey:uniqueKey];
+    NSArray *result = self->_childrenDictionary[uniqueKey];
     if (result == nil) {
         NSMutableArray *tempResult = [NSMutableArray array];
         for (NSObject<OXElement> *elem in self) {
@@ -218,13 +212,13 @@
             }
         }
         result = [NSArray arrayWithArray:tempResult];
-        [self->_childrenDictionary setObject:result forKey:uniqueKey];
+        self->_childrenDictionary[uniqueKey] = result;
     }
     return result;
 }
 
 - (id)firstChildByName:(NSString *)name {
-    return [[self childrenByNames:name, nil] objectAtIndex:0];
+    return [self childrenByNames:name, nil][0];
 }
 
 //- (id)firstChildByNames:(NSString *)name, ... {
@@ -236,7 +230,7 @@
 }
 
 - (id)firstTextChild {
-    return [self.textChildren objectAtIndex:0];
+    return (self.textChildren)[0];
 }
 
 
@@ -245,7 +239,12 @@
 
 @implementation OXText
 
-- (id)initWithString:(NSString *)string parent:(NSObject<OXElement> *)parent {
+- (instancetype)init {
+    self = [self initWithString:@"" parent:nil];
+    return self;
+}
+
+- (instancetype)initWithString:(NSString *)string parent:(NSObject<OXElement> *)parent {
     self = [super init];
     if (self != nil) {
         self->_value = [string copy];
@@ -254,15 +253,10 @@
     return self;
 }
 
-+ (id)textWithString:(NSString*)string parent:(NSObject<OXElement> *)parent {
-    return [[[self alloc] initWithString:string parent:parent] autorelease];
++ (instancetype)textWithString:(NSString*)string parent:(NSObject<OXElement> *)parent {
+    return [[self alloc] initWithString:string parent:parent];
 }
 
-- (void)dealloc {
-    [self->_value release];
-    [self->_strippedValue release];
-    [super dealloc];
-}
 
 - (id)copyWithZone:(NSZone *)zone {
     return [[[self class] alloc] initWithString:self->_value parent:self->_parent];
@@ -290,7 +284,7 @@
 
 - (NSString *)strippedText {
     if (self->_strippedValue == nil) {
-        self->_strippedValue = [[self->_value stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] retain];
+        self->_strippedValue = [self->_value stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     }
     return self->_strippedValue;
 }
@@ -341,7 +335,11 @@
 
 @implementation OXNode
 
-- (id)initWithName:(NSString *)aName attributes:(NSDictionary *)attributeDict children:(NSArray *)elementsArray {
+- (instancetype)init {
+    return [self initWithName:@"" attributes:@{} children:nil];
+}
+
+- (instancetype)initWithName:(NSString *)aName attributes:(NSDictionary *)attributeDict children:(NSArray *)elementsArray {
     self = [super init];
     if (self != nil) {
         self->_name = [aName copy];
@@ -359,7 +357,6 @@
     self->_name = nil;
     self->_children = nil;
     self->_attributes = nil;
-    [super dealloc];
 }
 
 - (NSObject<OXElement> *)root {
@@ -373,8 +370,8 @@
     return _root;
 }
 
-+ (id)nodeWithName:(NSString *)name attributes:(NSDictionary *)attributes children:(NSArray *)elements {
-    return [[[self alloc] initWithName:name attributes:attributes children:elements] autorelease];
++ (instancetype)nodeWithName:(NSString *)name attributes:(NSDictionary *)attributes children:(NSArray *)elements {
+    return [[self alloc] initWithName:name attributes:attributes children:elements];
 }
 
 - (NSString *)description {
@@ -414,8 +411,7 @@
 }
 
 - (void)setAttributes:(OXAttributeDictionary *)attributes {
-    [self->_attributes autorelease];
-    self->_attributes = [attributes retain];
+    self->_attributes = attributes;
 }
 
 - (NSString *)text {
@@ -431,7 +427,7 @@
     for (NSObject<OXElement> *elem in self.children) {
         [text appendString:elem.description];
     }
-    return [text autorelease];
+    return text;
 }
 
 - (NSString *)strippedInnerText {
@@ -441,7 +437,7 @@
 - (NSString *)descriptionWithIndent:(NSString *)indent {
     NSMutableString *attrs = [[NSMutableString alloc] init];
     for (NSString *key in [self.attributes keyEnumerator]) {
-        [attrs appendFormat:@" %@=\"%@\"", key, [self->_attributes objectForKey:key]];
+        [attrs appendFormat:@" %@=\"%@\"", key, self->_attributes[key]];
     }
     NSMutableString *elems = [[NSMutableString alloc] init];
 
@@ -450,12 +446,10 @@
         [elems appendFormat:@"\n%@", [e descriptionWithIndent:deeperIndent]];
     }
 
-    if ([elems length] > 0) {
+    if (elems.length > 0) {
         [elems appendFormat:@"\n%@", indent];
     }
     NSString *desc = [NSString stringWithFormat:@"%@<%@%@>%@</%@>", indent, _name, attrs, elems, _name];
-    [attrs release];
-    [elems release];
     return desc;
 }
 
@@ -463,17 +457,17 @@
 
 @implementation OXNode (creation)
 
-+ (id)nodeWithData:(NSData *)data {
-    OXXMLSimpleParser *parser = [[[OXXMLSimpleParser alloc] initWithData:data] autorelease];
++ (instancetype)nodeWithData:(NSData *)data {
+    OXXMLSimpleParser *parser = [[OXXMLSimpleParser alloc] initWithData:data];
     return parser.document;
 }
 
-+ (id)nodeWithContentOfURL:(NSURL *)url {
-    OXXMLSimpleParser *parser = [[[OXXMLSimpleParser alloc] initWithContentsOfURL:url] autorelease];
++ (instancetype)nodeWithContentOfURL:(NSURL *)url {
+    OXXMLSimpleParser *parser = [[OXXMLSimpleParser alloc] initWithContentsOfURL:url];
     return parser.document;
 }
 
-+ (id)nodeWithString:(NSString *)dataString {
++ (instancetype)nodeWithString:(NSString *)dataString {
     return [self nodeWithData:[dataString dataUsingEncoding:NSUTF8StringEncoding]];
 }
 
@@ -483,7 +477,7 @@
 @implementation OXTextBuilder
 @synthesize resources=_resources;
 
-- (id)init {
+- (instancetype)init {
     self = [super init];
     if (self != nil) {
         self->_resources = [[NSMutableArray alloc] init];
@@ -491,15 +485,10 @@
     return self;
 }
 
-- (void)dealloc {
-    [self->_resources release];
-    [super dealloc];
-}
 
 - (NSString *)text {
     if (self->_value == nil) {
-        self->_value = [[self->_resources componentsJoinedByString:@""] retain];
-        [self->_resources release];
+        self->_value = [self->_resources componentsJoinedByString:@""];
         self->_resources = nil;
     }
     return self->_value;
@@ -508,7 +497,7 @@
 - (NSString *)strippedText {
     if (self->_strippedValue == nil) {
         [self text]; // build
-        return [super strippedText];
+        return super.strippedText;
     }
     return self->_strippedValue;
 }
@@ -525,7 +514,7 @@
         dlog(1, @"ERROR: root document is blank at %p / %@", rootElement, rootElement);
         return nil;
     }
-    return [rootElement.children objectAtIndex:0];
+    return (rootElement.children)[0];
 }
 
 id ObjectXMLSharedErrorDelegate;
@@ -540,7 +529,7 @@ id ObjectXMLSharedErrorDelegate;
 #pragma mark -
 #pragma mark inherited methods
 
-- (id)initWithContentsOfURL:(NSURL *)url {
+- (instancetype)initWithContentsOfURL:(NSURL *)url {
     dlog(XML_DEBUG, @"XML from URL: %@", url);
     if ((self = [super initWithContentsOfURL:url]) != nil) {
         [self parse];
@@ -548,21 +537,16 @@ id ObjectXMLSharedErrorDelegate;
     return self;
 }
 
-- (id)initWithData:(NSData *)data {
+- (instancetype)initWithData:(NSData *)data {
     if ((self = [super initWithData:data]) != nil) {
         [self parse];
     }
     return self;
 }
 
-- (void)dealloc {
-    [rootElement release];
-    self.errorDelegate = nil;
-    [super dealloc];
-}
 
 - (BOOL) parse {
-    [self setDelegate:self];
+    self.delegate = self;
     [self setShouldProcessNamespaces:NO]; //
     [self setShouldReportNamespacePrefixes:NO];
     [self setShouldResolveExternalEntities:NO];
@@ -585,7 +569,6 @@ id ObjectXMLSharedErrorDelegate;
 
 - (void)parserDidStartDocument:(NSXMLParser *)parser {
     dlog(XML_DEBUG, @"parsing started");
-    [rootElement release];
     rootElement = [[OXNode alloc] initWithName:nil attributes:nil children:nil];
     currentElement = rootElement;
 }
@@ -595,7 +578,6 @@ id ObjectXMLSharedErrorDelegate;
     OXNode* childElement = [[OXNode alloc] initWithName:elementName attributes:attributeDict children:nil];
     [(NSMutableArray *)currentElement.children addObject:childElement];
     childElement.parent = currentElement;
-    [childElement release];
     currentElement = childElement;
 }
 
@@ -604,7 +586,7 @@ id ObjectXMLSharedErrorDelegate;
     //currentElement.elements = [NSArray arrayWithArray:currentElement.elements];
 
     for (NSInteger i = currentElement.children.count - 1; i >= 0; i--) {
-        NSObject<OXElement> *elem = [currentElement.children objectAtIndex:i];
+        NSObject<OXElement> *elem = (currentElement.children)[i];
         if (elem.name == nil) {
             if (elem.strippedText.length == 0) {
                 [(NSMutableArray *)currentElement.children removeObjectAtIndex:i];
@@ -629,7 +611,6 @@ id ObjectXMLSharedErrorDelegate;
         [builder.resources addObject:newText];
         [currentElement.children addObject:builder];
 
-        [builder release];
     }
 }
 

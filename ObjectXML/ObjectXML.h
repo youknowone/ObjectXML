@@ -84,12 +84,12 @@
  *      node children. nil for no children.
  *  @return An initialized node element from given parameters
  */
-- (id)initWithName:(NSString *)name attributes:(NSDictionary *)attributes children:(NSArray *)children;
+- (instancetype)initWithName:(NSString *)name attributes:(NSDictionary *)attributes children:(NSArray *)children NS_DESIGNATED_INITIALIZER;
 /*!
  *  @brief Creates and returns a node element.
  *  @see initWithName:attributes:children:
  */
-+ (id)nodeWithName:(NSString*)name attributes:(NSDictionary *)attributes children:(NSArray *)children;
++ (instancetype)nodeWithName:(NSString*)name attributes:(NSDictionary *)attributes children:(NSArray *)children;
 
 @end
 
@@ -99,14 +99,14 @@
 @interface OXNode (creation)
 
 //! @brief Parse a node from data (Containing string)
-+ (id)nodeWithData:(NSData *)data;
++ (instancetype)nodeWithData:(NSData *)data;
 /*!
  *  @brief Parse a node from contents of URL.
  *  @details About local files, use NSURL -filrURLWithPath:. This can be shorten with FoundationExtension from https://github.com/youknowone/FoundationExtension
  */
-+ (id)nodeWithContentOfURL:(NSURL *)URL;
++ (instancetype)nodeWithContentOfURL:(NSURL *)URL;
 //! @brief Parse a node from data string
-+ (id)nodeWithString:(NSString *)dataString;
++ (instancetype)nodeWithString:(NSString *)dataString;
 
 @end
 
@@ -129,12 +129,12 @@
  *      Parent of element. Text element is assumed that has a parent always.
  *  @return An initialized text element from given parameters
  */
-- (id)initWithString:(NSString *)string parent:(NSObject<OXElement> *)parent;
+- (instancetype)initWithString:(NSString *)string parent:(NSObject<OXElement> *)parent NS_DESIGNATED_INITIALIZER;
 /*!
  *  @brief Creates and returns a text element.
  *  @see initWithString:parent:
  */
-+ (id)textWithString:(NSString *)string parent:(NSObject<OXElement> *)parent;
++ (instancetype)textWithString:(NSString *)string parent:(NSObject<OXElement> *)parent;
 
 @end
 
@@ -180,7 +180,7 @@
 /*!
  *  @brief Name set of children
  */
-- (NSArray *)childrenNames;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *childrenNames;
 /*!
  *  @brief Returns childrens by given names
  *  @details Results are cached
@@ -208,11 +208,11 @@
 /*!
  *  @brief Returns text childrens
  */
-- (NSArray *)textChildren;
+@property (NS_NONATOMIC_IOSONLY, readonly, copy) NSArray *textChildren;
 /*!
  *  @brief First object of textChildren
  */
-- (id)firstTextChild;
+@property (NS_NONATOMIC_IOSONLY, readonly, strong) id firstTextChild;
 
 @end
 
@@ -238,8 +238,8 @@
 + (void)setSharedErrorDelegate:(id<OXXMLSimpleParserErrorDelegate>)delegate;
 + (id<OXXMLSimpleParserErrorDelegate>)sharedErrorDelegate;
 
-@property(readonly) OXNode *document;
-@property(retain) id<OXXMLSimpleParserErrorDelegate> errorDelegate;
+@property(weak, readonly) OXNode *document;
+@property(strong) id<OXXMLSimpleParserErrorDelegate> errorDelegate;
 
 @end
 

@@ -1,0 +1,6 @@
+language: objective-c
+sudo: false
+xcode_project: ObjectXML.xcodeproj
+xcode_sdk:
+  - macosx
+  - iphonesimulator
